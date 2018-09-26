@@ -38,7 +38,7 @@ public class ImageDB extends Application {
     public static final int BORDURE = 20;
     boolean imagePaire = true;
     Font font12 = Font.font("System", FontWeight.NORMAL, 12);
-
+    private double ratioCourant = 1.0;
 
 
     // On ne peut utiliser le setPreserveRatio() si on veut détecter
@@ -124,18 +124,22 @@ public class ImageDB extends Application {
             }
         };
 
-        stackPaneViewA.setStyle("-fx-border-color: red;");
+        stackPaneViewA.setStyle("-fx-border-color: red;-fx-border-insets: 4 4 4 4;");
         stackPaneViewA.setOpacity(1.0);
-        stackPaneViewB.setStyle("-fx-border-color: green;");
+        stackPaneViewB.setStyle("-fx-border-color: green;-fx-border-insets: 4 4 4 4;");
         stackPaneViewB.setOpacity(1.0);
 
         stackPileImages = new StackPane(stackPaneViewA, stackPaneViewB);
         stackPileImages.setMinSize(10, 10);
         stackPileImages.setMaxSize(1000, 1000);
-        stackPileImages.setStyle("-fx-border-color: red;  -fx-border-insets: 4 4 4 4;");
-
+        stackPileImages.setStyle("-fx-border-color: red; -fx-border-insets: 4 4 4 4;");
+        stackPileImages.setMinSize(2.0,2.0);
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(stackPileImages);
+        scrollPane.setMinViewportHeight(5.0);
+        scrollPane.setMinViewportWidth(5.0);
+        scrollPane.setMinSize(5.0,5.0);
+
         stackPileImages.widthProperty().addListener(changeListener);
         stackPileImages.heightProperty().addListener(changeListener);
 
@@ -162,16 +166,22 @@ public class ImageDB extends Application {
         scrollPane.viewportBoundsProperty().addListener((observable, oldValue, newValue) -> {
             // Mode dimension fixe
             if (newValue.getWidth() > 400 && newValue.getHeight() > 600) {
-                stackPaneViewA.setPrefWidth(imageWidth); // 1 fois
-                stackPaneViewA.setPrefHeight(imageHeight);
-                stackPaneViewB.setPrefWidth(imageWidth); // 1 fois
-                stackPaneViewB.setPrefHeight(imageHeight);
+                stackPaneViewA.setScaleX(1.5);
+                stackPaneViewB.setScaleX(1.5);
+                stackPaneViewA.setScaleY(1.5);
+                stackPaneViewB.setScaleY(1.5);
+                double hImageView = 1.5*imageHeight;
+                double wImageView = 1.5*imageWidth;
+                stackPaneViewA.setPrefWidth(wImageView);            // A chaque fois
+                stackPaneViewA.setPrefHeight(hImageView);
+                stackPaneViewB.setPrefWidth(wImageView);  // A chaque fois
+                stackPaneViewB.setPrefHeight(hImageView);
                 this.center(newValue, stackPileImages);
             } else {
                 // FIT
                 double wDisponible = newValue.getWidth() - BORDURE;
                 double hDisponible = newValue.getHeight() - BORDURE;
-                double ratioCourant = wDisponible / hDisponible;
+                ratioCourant = wDisponible / hDisponible;
                 double hImageView;
                 double wImageView;
                 if (ratioCourant > imageRatio) {
@@ -183,12 +193,25 @@ public class ImageDB extends Application {
                     wImageView = wDisponible;
                     hImageView = wDisponible * 1. / imageRatio;
                 }
+
+                double ratio = wImageView/imageWidth;
+                stackPaneViewA.setScaleX(ratio);
+                stackPaneViewB.setScaleX(ratio);
+                stackPaneViewA.setScaleY(ratio);
+                stackPaneViewB.setScaleY(ratio);
+
                 stackPaneViewA.setPrefWidth(wImageView);            // A chaque fois
                 stackPaneViewA.setPrefHeight(hImageView);
                 stackPaneViewB.setPrefWidth(wImageView);  // A chaque fois
                 stackPaneViewB.setPrefHeight(hImageView);
-                stackPileImages.setTranslateX((newValue.getWidth()-wImageView-BORDURE)/2);
+
+                //stackPileImages.setScaleX(ratio);
+                //stackPileImages.setScaleY(ratio);
+                stackPileImages.setTranslateX((newValue.getWidth() - imageWidth*ratio - BORDURE)/2);
+                stackPileImages.setTranslateY((newValue.getHeight() - imageHeight*ratio-BORDURE)/2);
+                /*stackPileImages.setTranslateX((newValue.getWidth()-wImageView-BORDURE)/2);
                 stackPileImages.setTranslateY((newValue.getHeight()-hImageView-BORDURE)/2);
+                */
             }
 
             if (imagePaire) {
@@ -202,7 +225,7 @@ public class ImageDB extends Application {
 
 
         StackPane stackPaneGlobal = new StackPane();
-        stackPaneGlobal.setStyle("-fx-border-color: red;  -fx-border-insets: 4 4 4 4;");
+        stackPaneGlobal.setStyle("-fx-border-color: green;  -fx-border-insets: 18 18 18 18;");
         EtiquetteFlottante etiquette = new EtiquetteFlottante();
         // Do not grab mouse attention
         etiquette.getGroup().setMouseTransparent(true);
@@ -212,9 +235,12 @@ public class ImageDB extends Application {
                 etiquette.getGroup().setVisible(true);
             });
             imageView.setOnMouseMoved(event -> {
-                etiquette.getLabel().setText(String.format("Local[%f:%f]\nScene[%f:%f]",
+                etiquette.getLabel().setText(String.format("Local[%f:%f]\nScene[%f:%f]\nStack[%f:%f]\nImageViewTX[%f:%f:%f]\nImageViewSX[%f:%f:%f]",
                         event.getX(), event.getY(),
-                        event.getSceneX(), event.getSceneY()));
+                        event.getSceneX(), event.getSceneY(),
+                        stackPileImages.getTranslateX(), stackPileImages.getTranslateY(),
+                        stackPileImages.getTranslateX(), stackPaneViewA.getTranslateX(), imageViewA.getScaleX(),
+                        stackPileImages.getScaleX(), stackPaneViewA.getScaleX(), imageViewA.getScaleX()));
                 double x = event.getSceneX();
                 double y = event.getScreenY();
                 Point2D ptLocal = stackPaneGlobal.screenToLocal(event.getScreenX(), event.getScreenY());
@@ -239,6 +265,23 @@ public class ImageDB extends Application {
         root.show();
     }
 
+    private void center(Bounds viewPortBounds, StackPane centeredNode) {
+
+        double width = viewPortBounds.getWidth();
+        double height = viewPortBounds.getHeight();
+
+        if (width > (imageWidth*centeredNode.getScaleX() + BORDURE)) {
+            centeredNode.setTranslateX((width - imageWidth*centeredNode.getScaleX() - BORDURE) / 2);
+        } else {
+            centeredNode.setTranslateX(0);
+        }
+        if (height > (imageHeight*centeredNode.getScaleX() + BORDURE)) {
+            centeredNode.setTranslateY((height - imageHeight*centeredNode.getScaleY() - BORDURE) / 2);
+        } else {
+            centeredNode.setTranslateY(0);
+        }
+    }
+
     private Image createImage(Color color) {
         return new Image(getClass().getResourceAsStream("/x420.png"));
 
@@ -249,22 +292,7 @@ public class ImageDB extends Application {
         Application.launch(args);
     }
 
-    private void center(Bounds viewPortBounds, StackPane centeredNode) {
 
-        double width = viewPortBounds.getWidth();
-        double height = viewPortBounds.getHeight();
-
-        if (width > (imageWidth + BORDURE)) {
-            centeredNode.setTranslateX((width - imageWidth - BORDURE) / 2);
-        } else {
-            centeredNode.setTranslateX(0);
-        }
-        if (height > (imageHeight + BORDURE)) {
-            centeredNode.setTranslateY((height - imageHeight - BORDURE) / 2);
-        } else {
-            centeredNode.setTranslateY(0);
-        }
-    }
 
     public HBox addHBox() {
         HBox hbox = new HBox();
