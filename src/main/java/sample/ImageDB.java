@@ -166,10 +166,10 @@ public class ImageDB extends Application {
         scrollPane.viewportBoundsProperty().addListener((observable, oldValue, newValue) -> {
             // Mode dimension fixe
             if (newValue.getWidth() > 400 && newValue.getHeight() > 600) {
-                stackPaneViewA.setScaleX(1.5);
-                stackPaneViewB.setScaleX(1.5);
-                stackPaneViewA.setScaleY(1.5);
-                stackPaneViewB.setScaleY(1.5);
+                stackPaneViewA.setScaleX(1.0);
+                stackPaneViewB.setScaleX(1.0);
+                stackPaneViewA.setScaleY(1.0);
+                stackPaneViewB.setScaleY(1.0);
                 double hImageView = 1.5*imageHeight;
                 double wImageView = 1.5*imageWidth;
                 stackPaneViewA.setPrefWidth(wImageView);            // A chaque fois
@@ -195,7 +195,13 @@ public class ImageDB extends Application {
                 }
 
                 double ratio = wImageView/imageWidth;
-                stackPaneViewA.setScaleX(ratio);
+                stackPileImages.setScaleX(ratio);
+                stackPileImages.setScaleY(ratio);
+                stackPaneViewA.setScaleX(1.0);
+                stackPaneViewB.setScaleX(1.0);
+                stackPaneViewA.setScaleY(1.0);
+                stackPaneViewB.setScaleY(1.0);
+                /*stackPaneViewA.setScaleX(ratio);
                 stackPaneViewB.setScaleX(ratio);
                 stackPaneViewA.setScaleY(ratio);
                 stackPaneViewB.setScaleY(ratio);
@@ -204,7 +210,7 @@ public class ImageDB extends Application {
                 stackPaneViewA.setPrefHeight(hImageView);
                 stackPaneViewB.setPrefWidth(wImageView);  // A chaque fois
                 stackPaneViewB.setPrefHeight(hImageView);
-
+*/
                 //stackPileImages.setScaleX(ratio);
                 //stackPileImages.setScaleY(ratio);
                 stackPileImages.setTranslateX((newValue.getWidth() - imageWidth*ratio - BORDURE)/2);
@@ -229,12 +235,12 @@ public class ImageDB extends Application {
         EtiquetteFlottante etiquette = new EtiquetteFlottante();
         // Do not grab mouse attention
         etiquette.getGroup().setMouseTransparent(true);
-        Stream.of(imageViewA, imageViewB, canvasA, canvasB).forEach(imageView -> {
-            imageView.setOnMouseEntered(event -> {
-                System.out.println("Enter imageView!"+imageView);
+        Stream.of(stackPaneViewA, stackPaneViewB/*imageViewA, imageViewB, canvasA, canvasB*/).forEach(stackPane -> {
+            stackPane.setOnMouseEntered(event -> {
+                System.out.println("Enter imageView!"+stackPane);
                 etiquette.getGroup().setVisible(true);
             });
-            imageView.setOnMouseMoved(event -> {
+            stackPane.setOnMouseMoved(event -> {
                 etiquette.getLabel().setText(String.format("Local[%f:%f]\nScene[%f:%f]\nStack[%f:%f]\nImageViewTX[%f:%f:%f]\nImageViewSX[%f:%f:%f]",
                         event.getX(), event.getY(),
                         event.getSceneX(), event.getSceneY(),
@@ -247,8 +253,8 @@ public class ImageDB extends Application {
                 Point2D pts = etiquette.getGroup().sceneToLocal(x,y);
                 etiquette.getGroup().relocate(ptLocal.getX()+5, ptLocal.getY()- etiquette.getGroup().getLayoutBounds().getHeight()-5);//x, y - etiquette.getLabel().getHeight() - 25);
             });
-            imageView.setOnMouseExited(event -> {
-                System.out.println("Exit imageView!"+imageView);
+            stackPane.setOnMouseExited(event -> {
+                System.out.println("Exit imageView!"+stackPane);
                 etiquette.getGroup().setVisible(false);
             });
         });
