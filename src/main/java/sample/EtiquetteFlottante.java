@@ -12,15 +12,19 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public class EtiquetteFlottante {
-    Font theFont2 = Font.font("System", FontWeight.NORMAL, 12);
+    //Font theFont2 = Font.font("System", FontWeight.NORMAL, 11);
     private final Label label;
     private final Group group;
 
     public EtiquetteFlottante() {
+        this(11);
+    }
+
+    public EtiquetteFlottante(int sizeFont) {
         // Ajouter un petit label pour tester comme il faut
         label = new Label("Texte mobile");
         label.setTextFill(Color.BLACK);
-        label.setFont(theFont2);
+        label.setFont(Font.font("System", FontWeight.NORMAL, sizeFont));
         label.setVisible(true);
         label.setOpacity(1.0);
         label.setScaleX(1.0);

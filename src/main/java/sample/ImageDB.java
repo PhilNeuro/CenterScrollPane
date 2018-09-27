@@ -7,6 +7,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -45,7 +46,7 @@ public class ImageDB extends Application {
     // le moment où le curseur entre dans l'image (ImageView).  En mode
     // preserveRatio(), le ImageView détecte l'entrée du curseur à l'extérieur
     // de l'image
-
+    Group zoomGroup;
     @Override
     public void start(Stage root) {
 
@@ -132,10 +133,17 @@ public class ImageDB extends Application {
         stackPileImages = new StackPane(stackPaneViewA, stackPaneViewB);
         stackPileImages.setMinSize(10, 10);
         stackPileImages.setMaxSize(1000, 1000);
-        stackPileImages.setStyle("-fx-border-color: red; -fx-border-insets: 4 4 4 4;");
+        stackPileImages.setStyle("-fx-border-color: red; -fx-border-width: 1;-fx-border-insets: 4 4 4 4;");
         stackPileImages.setMinSize(2.0,2.0);
         ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(stackPileImages);
+
+        Group contentGroup = new Group();
+        zoomGroup = new Group();
+        contentGroup.getChildren().add(zoomGroup);
+        zoomGroup.getChildren().add(stackPileImages);
+        scrollPane.setContent(contentGroup);
+
+        //scrollPane.setContent(stackPileImages);
         scrollPane.setMinViewportHeight(5.0);
         scrollPane.setMinViewportWidth(5.0);
         scrollPane.setMinSize(5.0,5.0);
@@ -166,6 +174,7 @@ public class ImageDB extends Application {
         scrollPane.viewportBoundsProperty().addListener((observable, oldValue, newValue) -> {
             // Mode dimension fixe
             if (newValue.getWidth() > 400 && newValue.getHeight() > 600) {
+                /*
                 stackPaneViewA.setScaleX(1.0);
                 stackPaneViewB.setScaleX(1.0);
                 stackPaneViewA.setScaleY(1.0);
@@ -176,7 +185,11 @@ public class ImageDB extends Application {
                 stackPaneViewA.setPrefHeight(hImageView);
                 stackPaneViewB.setPrefWidth(wImageView);  // A chaque fois
                 stackPaneViewB.setPrefHeight(hImageView);
-                this.center(newValue, stackPileImages);
+                this.center(newValue, stackPileImages);*/
+                zoomGroup.setScaleX(1.0);
+                zoomGroup.setScaleY(1.0);
+                zoomGroup.setTranslateX((newValue.getWidth() - imageWidth - BORDURE)/2);
+                zoomGroup.setTranslateY((newValue.getHeight() - imageHeight-BORDURE)/2);
             } else {
                 // FIT
                 double wDisponible = newValue.getWidth() - BORDURE;
@@ -195,29 +208,22 @@ public class ImageDB extends Application {
                 }
 
                 double ratio = wImageView/imageWidth;
+                zoomGroup.setScaleX(ratio);
+                zoomGroup.setScaleY(ratio);
+                zoomGroup.setTranslateX((newValue.getWidth() - imageWidth*ratio - BORDURE)/2);
+                zoomGroup.setTranslateY((newValue.getHeight() - imageHeight*ratio-BORDURE)/2);
+
+                /*
                 stackPileImages.setScaleX(ratio);
                 stackPileImages.setScaleY(ratio);
                 stackPaneViewA.setScaleX(1.0);
                 stackPaneViewB.setScaleX(1.0);
                 stackPaneViewA.setScaleY(1.0);
                 stackPaneViewB.setScaleY(1.0);
-                /*stackPaneViewA.setScaleX(ratio);
-                stackPaneViewB.setScaleX(ratio);
-                stackPaneViewA.setScaleY(ratio);
-                stackPaneViewB.setScaleY(ratio);
 
-                stackPaneViewA.setPrefWidth(wImageView);            // A chaque fois
-                stackPaneViewA.setPrefHeight(hImageView);
-                stackPaneViewB.setPrefWidth(wImageView);  // A chaque fois
-                stackPaneViewB.setPrefHeight(hImageView);
-*/
-                //stackPileImages.setScaleX(ratio);
-                //stackPileImages.setScaleY(ratio);
                 stackPileImages.setTranslateX((newValue.getWidth() - imageWidth*ratio - BORDURE)/2);
                 stackPileImages.setTranslateY((newValue.getHeight() - imageHeight*ratio-BORDURE)/2);
-                /*stackPileImages.setTranslateX((newValue.getWidth()-wImageView-BORDURE)/2);
-                stackPileImages.setTranslateY((newValue.getHeight()-hImageView-BORDURE)/2);
-                */
+              */
             }
 
             if (imagePaire) {
@@ -266,6 +272,7 @@ public class ImageDB extends Application {
         addStackPane(hbox);
         border.setCenter(scrollPane);
         stackPaneGlobal.getChildren().addAll(border, etiquette.getGroup());
+        stackPaneGlobal.setPrefSize(300,300);
         root.setScene(new Scene(stackPaneGlobal));
         root.setMaximized(true);
         root.show();
